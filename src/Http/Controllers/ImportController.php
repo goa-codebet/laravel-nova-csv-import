@@ -116,7 +116,6 @@ class ImportController
     {
         $resource_name = $request->input('resource');
         $request->route()->setParameter('resource', $resource_name);
-
         $resource = Nova::resourceInstanceForKey($resource_name);
 
         $attribute_map = $request->input('mappings');
