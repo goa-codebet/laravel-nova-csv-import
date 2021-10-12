@@ -53,20 +53,31 @@ class ImportController
     {
         $novaResource = new $resource(new $resource::$model);
         $fieldsCollection = collect($novaResource->creationFields($request));
-
-            if (method_exists($novaResource, 'excludeAttributesFromImport')) {
-                $fieldsCollection = $fieldsCollection->filter(function(Field $field) use ($novaResource, $request) {
-                return !in_array($field->attribute, $novaResource::excludeAttributesFromImport($request));
-            });
-        }
-
-        $fields = $fieldsCollection->map(function (Field $field) {
-                    return [
+        $excludedFields = $novaResource::excludeAttributesFromImport($request);
+        
+        $fields = [];
+        if(is_array($fieldsCollection[0]) && isset($fieldsCollection[0]['fields']) && is_array($fieldsCollection[0]['fields'])){
+            foreach($fieldsCollection[0]['fields'] as $field){
+                if(!in_array($field->attribute, $excludedFields)){
+                    $fields[] = [
                         'name' => $field->name,
                         'attribute' => $field->attribute
                     ];
-                });
-        
+                }
+            }
+        } else {
+            foreach($fieldsCollection as $field){
+                if(is_object($field)){
+                    if(!in_array($field->attribute, $excludedFields)){
+                        $fields[] = [
+                            'name' => $field->name,
+                            'attribute' => $field->attribute
+                        ];
+                    }
+                }
+            }
+        }
+
        return [$novaResource->uriKey() => $fields];
     }
 
@@ -91,8 +102,10 @@ class ImportController
 
                     $static_vars = $resourceReflection->getStaticProperties();
 
-                    if (!isset($static_vars['canImportResource'])) {
+                    if (isset($static_vars['canImportResource'])) {
                         return true;
+                    } else {
+                        return false;
                     }
 
                     return isset($static_vars['canImportResource']) && $static_vars['canImportResource'];
@@ -105,10 +118,14 @@ class ImportController
         $request->route()->setParameter('resource', $resource_name);
 
         $resource = Nova::resourceInstanceForKey($resource_name);
+
         $attribute_map = $request->input('mappings');
-        $attributes = $resource->creationFields($request)->pluck('attribute');
-        $rules = $this->extractValidationRules($request, $resource)->toArray();
         $model_class = get_class($resource->resource);
+        $rules = $this->extractValidationRules($request, $resource)->toArray();
+        $attributes = $resource->creationFields($request)->pluck('attribute');
+        if(count($attributes) <= 1){
+            $attributes[0] = array_keys($rules);
+        }
 
         $this->importer
             ->setResource($resource)
