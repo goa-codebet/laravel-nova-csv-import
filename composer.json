@@ -1,6 +1,6 @@
 {
-    "name": "simonhamp/laravel-nova-csv-import",
-    "description": "A fully-fledged CSV import tool for Laravel Nova.",
+    "name": "goa-codebet/laravel-nova-csv-import",
+    "description": "A fully-fledged CSV import tool for Laravel Nova. Inspired by simonhamp/laravel-nova-csv-import",
     "keywords": [
         "laravel",
         "nova"
