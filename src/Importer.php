@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Imports;
+namespace SimonHamp\LaravelNovaCsvImport;
 
 use Laravel\Nova\Nova;
 use Laravel\Nova\Resource;
